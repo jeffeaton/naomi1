@@ -206,7 +206,7 @@ extract_clusters <- function(path, survey_id, REGVAR){
     transmute(survey_id,
               cluster_id = hv001,
               survey_region_id = .data[[REGVAR]],
-              res_type = factor(hv025, 1:2, c("urban", "rural"))) %>%
+              restype = factor(hv025, 1:2, c("urban", "rural"))) %>%
     distinct
 
   val
@@ -216,9 +216,7 @@ hrclust <- Map(extract_clusters,
                hrd$path,
                hrd$survey_id,
                hrd$REGVAR) %>%
-  lapply(mutate, survey_region_id = as.integer(survey_region_id)) %>%
   bind_rows()
-
 
 #' Check that all region IDs appear in survey_regions dataset
 hrclust %>%
@@ -288,7 +286,7 @@ clusters <- clusters %>%
   ungroup %>% 
   transmute(survey_id,
             cluster_id = cluster_id,
-            res_type,
+            restype,
             survey_region_id, 
             longitude,
             latitude,
@@ -529,7 +527,7 @@ ge <- bind_rows(
 ) %>%
   distinct(survey_id,
            cluster_id,
-           res_type = factor(urban, 1:2, c("urban", "rural")),
+           restype = factor(urban, 1:2, c("urban", "rural")),
            survey_region_id = as.integer(zone))
 
 
@@ -549,8 +547,7 @@ area_sample <- mwi_population_agesex %>%
   count(area_id, survey_id, survey_region_id, wt = population, name = "pop15to64") %>%
   group_by(survey_id, survey_region_id) %>%
   summarise(area_ids = list(area_id),
-            area_pops = list(pop15to64),
-            .groups = "drop")
+            area_pops = list(pop15to64))
   
 #' Sample area_id for each cluster proportional to population size
 sample2 <- function(x, size, replace = FALSE, prob = NULL) {
@@ -729,6 +726,7 @@ usethis::use_data(
            mwi_survey_hiv_indicators,
            overwrite = TRUE
          )
+
 
 
 dir.create(here("inst/extdata/survey/"))
