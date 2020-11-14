@@ -1,3 +1,9 @@
+# naomi 1.0.12
+
+* Patch to `inst/report/summary_report.Rmd` to handle error if `area_name` is not unique.
+
+# **ARCHIVED VERSION OF NAOMI 1.0**
+
 # naomi 1.0.11
 
 * Add a basic vignette showing example script for running `hintr_run_model()` 

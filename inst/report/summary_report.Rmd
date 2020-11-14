@@ -21,8 +21,11 @@ options <- yaml::read_yaml(options)
 
 
 indicators <- naomi::add_output_labels(outputs) %>%
-dplyr::left_join(outputs$meta_area %>% dplyr::select(area_level, area_id, center_x, center_y)) %>%
-sf::st_as_sf()
+  dplyr::left_join(
+           outputs$meta_area %>%
+           dplyr::select(area_level, area_id, center_x, center_y)
+         ) %>%
+  sf::st_as_sf()
 
 # Grab inputs and model options from model output zip file
 # # concatenating strings where more than one option may be selected
@@ -575,24 +578,27 @@ whole_indicators <- c("plhiv", "infections", "art_num_attend", "art_num_resident
 x1 <- data %>% sf::st_drop_geometry() %>%
   dplyr::filter(age_group == "15-49",
                 sex == "both") %>%
-  dplyr::select(area_name, mean, lower, upper, indicator)
+  dplyr::select(area_id, area_name, mean, lower, upper, indicator)
 
 # Format indicators
-x2 <- x1 %>% dplyr::mutate_if(~is.numeric(.),
-                              ~dplyr::if_else(indicator %in% percent_indicators,
-                                              round(. *100, 2),
-                                              dplyr::if_else(indicator == "incidence", 
-                                                      round(.*1000, 2), 
-                                                      ceiling(.))))
+x2 <- x1 %>%
+  dplyr::mutate_if(~is.numeric(.),
+                   ~dplyr::if_else(indicator %in% percent_indicators,
+                                   round(. *100, 2),
+                                   dplyr::if_else(indicator == "incidence", 
+                                                  round(.*1000, 2), 
+                                                  ceiling(.))))
 
-x3 <- x2  %>% dplyr::mutate(val = ifelse(indicator %in% percent_indicators,
-                                         paste0(mean,"%"," (",lower,"-",upper,"%)"),
-                                         paste0(mean," (",lower,"-",upper,")")),)
-# Melt data in table 
+x3 <- x2  %>%
+  dplyr::mutate(val = ifelse(indicator %in% percent_indicators,
+                             paste0(mean,"%"," (",lower,"-",upper,"%)"),
+                             paste0(mean," (",lower,"-",upper,")")),)
+
+## Melt data in table 
 x4 <- x3 %>% 
-  dplyr::select(area_name, val, indicator) %>%
+  dplyr::select(area_id, area_name, val, indicator) %>%
   tidyr::spread(indicator, val) %>%
-  dplyr::select(area_name, plhiv, prevalence, infections, incidence,
+  dplyr::select(area_id, area_name, plhiv, prevalence, infections, incidence,
                 art_coverage, art_num_residents,
                 art_num_attend)
 
@@ -602,7 +608,9 @@ x4 <- x3 %>%
 # # # By lowest area_level, indicators defined above
 # #------------------------------------------------------------------------------
 
-x4 %>% gt::gt(rowname_col = "area_name") %>%
+x4 %>%
+  dplyr::select(-area_id) %>%
+  gt::gt(rowname_col = "area_name") %>%
   gt::tab_stubhead(label = gt::md("**Area**")) %>%
   gt::tab_options(
     table.align = "left",
